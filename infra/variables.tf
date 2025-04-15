@@ -1,5 +1,5 @@
 variable "location" {
-  default = "East US"
+  default = "Central US"
 }
 
 variable "prefix" {
