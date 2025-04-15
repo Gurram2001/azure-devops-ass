@@ -10,47 +10,64 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "rg" {
   name     = var.resource_group_name
   location = var.location
 }
 
-resource "azurerm_service_plan" "plan" {
-  name                = "${var.prefix}-asp"
-  location            = var.location
+resource "azurerm_service_plan" "asp" {
+  name                = var.app_service_plan_name
+  location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   os_type             = "Linux"
-  sku_name            = "S1"
+
+  sku_name = "S1"
 }
 
-resource "azurerm_linux_web_app" "app" {
-  name                = "${var.prefix}-webapi"
-  location            = var.location
+resource "azurerm_linux_web_app" "webapp" {
+  name                = var.app_service_name
+  location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  app_service_plan_id = azurerm_service_plan.plan.id
+  service_plan_id     = azurerm_service_plan.asp.id
 
   site_config {
-    dotnet_framework_version = "v6.0"
-    scm_type                 = "VSTSRM"
+    application_stack {
+      docker_image     = "${var.container_registry}/${var.image_name}"
+      docker_image_tag = "latest"
+    }
   }
 
   app_settings = {
-    "WEBSITE_RUN_FROM_PACKAGE" = "1"
+    "WEBSITES_PORT" = "80"
   }
 }
 
-resource "azurerm_mssql_server" "sql" {
-  name                         = "${var.prefix}-sqlserver"
+resource "azurerm_mssql_server" "sqlserver" {
+  name                         = var.sql_server_name
   resource_group_name          = azurerm_resource_group.rg.name
-  location                     = var.location
+  location                     = azurerm_resource_group.rg.location
   version                      = "12.0"
-  administrator_login          = var.sql_admin
-  administrator_login_password = var.sql_password
+  administrator_login          = var.sql_admin_username
+  administrator_login_password = var.sql_admin_password
 }
 
-resource "azurerm_mssql_database" "db" {
-  name                = "${var.prefix}-db"
-  server_id           = azurerm_mssql_server.sql.id
-  sku_name            = "S3"
+resource "azurerm_mssql_database" "sqldb" {
+  name      = var.sql_database_name
+  server_id = azurerm_mssql_server.sqlserver.id
+  collation = "SQL_Latin1_General_CP1_CI_AS"
+  license_type = "LicenseIncluded"
+  max_size_gb  = 10
+  read_scale   = false
+  sku_name     = var.sql_sku # example: "S0"
 }
 
+resource "azurerm_key_vault" "kv" {
+  name                        = var.key_vault_name
+  location                    = azurerm_resource_group.rg.location
+  resource_group_name         = azurerm_resource_group.rg.name
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  sku_name                    = "standard"
+  purge_protection_enabled    = false
+}
