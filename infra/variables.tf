@@ -1,6 +1,6 @@
 variable "resource_group_name" {
   type    = string
-  default = "modus-rg1"
+  default = "karthik-assignement-rg1"
 }
 
 variable "location" {
@@ -10,17 +10,17 @@ variable "location" {
 
 variable "app_service_plan_name" {
   type    = string
-  default = "modus-asp"
+  default = "karthik-modus-asp"
 }
 
 variable "app_service_name" {
   type    = string
-  default = "modus-webapp"
+  default = "samplewebapp"
 }
 
-variable "container_registry" {
+variable "acr_name" {
   type    = string
-  default = "<your_container_registry>"  # e.g., myregistry.azurecr.io
+  default = "karthikassignmentdevops"  # e.g., myregistry.azurecr.io
 }
 
 variable "image_name" {
@@ -30,7 +30,7 @@ variable "image_name" {
 
 variable "sql_server_name" {
   type    = string
-  default = "modus-sql-server"
+  default = "karthik-modus-sql-server"
 }
 
 variable "sql_admin_username" {
@@ -51,9 +51,4 @@ variable "sql_database_name" {
 variable "sql_sku" {
   type    = string
   default = "S0"
-}
-
-variable "key_vault_name" {
-  type    = string
-  default = "modus-kv-20251504"
 }
