@@ -16,7 +16,13 @@ resource "azurerm_resource_group" "rg" {
   name     = var.resource_group_name
   location = var.location
 }
-
+resource "azurerm_container_registry" "acr" {
+  name                = var.acr_name
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  sku                 = "Basic"
+  admin_enabled       = true
+}
 resource "azurerm_service_plan" "asp" {
   name                = var.app_service_plan_name
   location            = azurerm_resource_group.rg.location
@@ -34,13 +40,18 @@ resource "azurerm_linux_web_app" "webapp" {
 
   site_config {
     application_stack {
-      docker_image     = "${var.container_registry}/${var.image_name}"
+      docker_image     = "${azurerm_container_registry.acr.login_server}/sampleapi"
       docker_image_tag = "latest"
     }
   }
 
   app_settings = {
-    "WEBSITES_PORT" = "80"
+    "DOCKER_REGISTRY_SERVER_URL"      = "https://${azurerm_container_registry.acr.login_server}"
+    "DOCKER_REGISTRY_SERVER_USERNAME" = azurerm_container_registry.acr.admin_username
+    "DOCKER_REGISTRY_SERVER_PASSWORD" = azurerm_container_registry.acr.admin_password
+  }
+identity {
+    type = "SystemAssigned"
   }
 }
 
@@ -61,13 +72,4 @@ resource "azurerm_mssql_database" "sqldb" {
   max_size_gb  = 10
   read_scale   = false
   sku_name     = var.sql_sku # example: "S0"
-}
-
-resource "azurerm_key_vault" "kv" {
-  name                        = var.key_vault_name
-  location                    = azurerm_resource_group.rg.location
-  resource_group_name         = azurerm_resource_group.rg.name
-  tenant_id                   = data.azurerm_client_config.current.tenant_id
-  sku_name                    = "standard"
-  purge_protection_enabled    = false
 }
