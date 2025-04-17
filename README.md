@@ -12,38 +12,17 @@ This project demonstrates a full-stack cloud-native implementation for a .NET 8 
 - **Secure, Highly Available, Fault Tolerant**: Azure infrastructure provides these by default. Code and pipeline are modular and resilient.
 
 ---
-
-### 🏗️ Architecture Overview
-
-```
-User → Azure App Service (.NET API) → Azure SQL DB
-                ↓
-        Azure DevOps Pipelines (CI/CD)
-                ↓
-            Terraform (Infra as Code)
-```
-
-(Refer to `diagrams/architecture.png` for a visual layout.)
-
----
-
-### 📁 Repository Structure
-
-```
-infra/         → Terraform code for infrastructure provisioning
-src/           → .NET 8 Web API project
-pipelines/     → Azure Pipelines YAML files (CI/CD)
-diagrams/      → Architecture diagrams
 ```
 
 ---
 
-### 🚀 How to Run
+### How to Run
 
 #### 1. Provision Infrastructure
 ```bash
 cd infra
 terraform init
+terraform plan
 terraform apply -auto-approve
 ```
 
